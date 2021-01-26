@@ -6,7 +6,9 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector3f;
 import renderEngine.DisplayManager;
 import terrains.Terrain;
-import terrains.Terrains;
+import water.WaterTile;
+
+import java.util.List;
 
 public class Player extends Entity{
 
@@ -22,12 +24,13 @@ public class Player extends Entity{
     private float upwardsSpeed = 0;
 
     private boolean isInAir = false;
+    private boolean isInWater = false;
 
     public Player(TexturedModel model, Vector3f position, float rotX, float rotY, float rotZ, float scale) {
         super(model, position, rotX, rotY, rotZ, scale);
     }
 
-    public void move(Terrain terrain){
+    public void move(Terrain terrain, List<WaterTile> waterTiles){
         checkInputs();
         super.increaseRotation(new Vector3f(0f, currentTurnSpeed * DisplayManager.getDeltaTime(), 0f));
         float distance = currentSpeed * DisplayManager.getDeltaTime();
@@ -42,6 +45,28 @@ public class Player extends Entity{
             super.getPosition().y = terrainHeight;
             isInAir = false;
         }
+
+        for(WaterTile water : waterTiles){
+            float xMax = water.getX() + WaterTile.TILE_SIZE;
+            float xMin = water.getX() - WaterTile.TILE_SIZE;
+
+            float zMax = water.getZ() + WaterTile.TILE_SIZE;
+            float zMin = water.getZ() - WaterTile.TILE_SIZE;
+
+            if(super.getPosition().y < water.getHeight() * 1.03 &&
+                    super.getPosition().x > xMin && super.getPosition().x < xMax &&
+                    super.getPosition().z > zMin && super.getPosition().z < zMax){
+                this.isInWater = true;
+                break;
+            }else {
+                this.isInWater = false;
+            }
+        }
+
+    }
+
+    public boolean isInWater() {
+        return isInWater;
     }
 
     private void jump(){

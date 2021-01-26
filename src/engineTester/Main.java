@@ -98,12 +98,13 @@ public class Main {
         List<WaterTile> waterTiles = new ArrayList<WaterTile>();
         List<WaterTile> waterTilesEmpty = new ArrayList<WaterTile>();
         WaterTile waterTile = new WaterTile(-210, -485, -8f);
+        WaterTile waterTile2 = new WaterTile(-360, -513, -13f);
         waterTiles.add(waterTile);
-
+        waterTiles.add(waterTile2);
 
         while(!Display.isCloseRequested()){
             //Game logic
-            player.move(terrains.getCurrentTerrain(player.getPosition()));
+            player.move(terrains.getCurrentTerrain(player.getPosition()), waterTiles);
             camera.move();
             //picker.update();
             //camera.cameraOwnMovement();
@@ -111,6 +112,7 @@ public class Main {
             Vector3f terrainPoint = picker.getCurrentTerrainPoint();
             if(terrainPoint != null && lamp != null) lamp.setPosition(terrainPoint);
 
+            System.out.println(player.isInWater());
             //Render
             fbos.bindReflectionFrameBuffer();
             float distance = 2 * (camera.getPosition().y - waterTile.getHeight());
