@@ -46,6 +46,7 @@ public class WaterFrameBuffers {
     }
 
     public void unbindCurrentFrameBuffer() {//call to switch to default frame buffer
+        GL11.glDisable(GL30.GL_CLIP_DISTANCE0);
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
         GL11.glViewport(0, 0, Display.getWidth(), Display.getHeight());
     }

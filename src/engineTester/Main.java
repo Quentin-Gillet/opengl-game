@@ -10,6 +10,7 @@ import guis.GuiRenderer;
 import guis.GuiTexture;
 import inputs.MousePicker;
 import loaders.Loader;
+import loaders.normalMappingObjLoader.NormalMappedObjLoader;
 import loaders.objLoader.OBJFileLoader;
 import models.TexturedModel;
 import org.lwjgl.opengl.Display;
@@ -46,7 +47,9 @@ public class Main {
         grassTexture.setUseFakeLightning(true);
         TexturedModel grass = new TexturedModel(OBJFileLoader.loadObjModel("grassModel", loader), grassTexture);
 
-        List<Entity> allEntities = new ArrayList<Entity>();
+        List<Entity> entities = new ArrayList<Entity>();
+        List<Entity> normalMapEntities = new ArrayList<Entity>();
+
         Random r = new Random();
 
         List<Light> lights = new ArrayList<Light>();
@@ -66,6 +69,12 @@ public class Main {
 
         MousePicker picker = new MousePicker(camera, renderer.getProjectionMatrix(), terrains);
 
+        TexturedModel barrel = new TexturedModel(NormalMappedObjLoader.loadOBJ("barrel", loader), new ModelTexture(loader.loadTexture("models/barrel")));
+        barrel.getTexture().setShineDamper(10);
+        barrel.getTexture().setReflectivity(0.5f);
+        barrel.getTexture().setNormalMapID(loader.loadTexture("models/normals/barrelNormal"));
+        normalMapEntities.add(new Entity(barrel, new Vector3f(75, 10, -75), 0, 0, 0, 1f));
+
         Lamp lamp = null;
 
         for (int i = 0; i < 1000; i++){
@@ -76,19 +85,19 @@ public class Main {
             int random = r.nextInt(4);
             float y = terrains.getCurrentTerrain(new Vector3f(x, 0, z)).getHeightOfTerrain(x, z);
             if(random == 2){
-                allEntities.add(new Entity(fern, r.nextInt(4), new Vector3f(x, y, z), 0, 0, 0, 0.75f));
+                entities.add(new Entity(fern, r.nextInt(4), new Vector3f(x, y, z), 0, 0, 0, 0.75f));
             }else if(random == 0){
-                allEntities.add(new Entity(grass, new Vector3f(x, y, z), 0, 0, 0, 1.5f));
+                entities.add(new Entity(grass, new Vector3f(x, y, z), 0, 0, 0, 1.5f));
             }else if(random == 3){
-                allEntities.add(treeGenerator.generateTree(new Vector3f(x, y, z), 0, 0, 0));
+                entities.add(treeGenerator.generateTree(new Vector3f(x, y, z), 0, 0, 0));
             }else if(r.nextInt(10) == 1){
                 if(lights.size() > 3) continue;
                 lamp = new Lamp(loader, lights, new Vector3f(x, y, z), 0, 0, 0, 1);
-                allEntities.add(lamp);
+                entities.add(lamp);
             }
         }
 
-        allEntities.add(player);
+        entities.add(player);
 
         List<GuiTexture> guis = new ArrayList<GuiTexture>();
         guis.add(new GuiTexture(loader.loadTexture("guis/health"), new Vector2f(0.75f, 0.75f), new Vector2f(0.25f, .25f)));
@@ -112,22 +121,20 @@ public class Main {
             Vector3f terrainPoint = picker.getCurrentTerrainPoint();
             if(terrainPoint != null && lamp != null) lamp.setPosition(terrainPoint);
 
-            System.out.println(player.isInWater());
             //Render
             fbos.bindReflectionFrameBuffer();
             float distance = 2 * (camera.getPosition().y - waterTile.getHeight());
             camera.getPosition().y -= distance;
             camera.invertPitch();
-            renderer.renderScene(allEntities, lights, waterTilesEmpty, terrains, camera, new Vector4f(0, 1, 0, -waterTile.getHeight() + 1f));
+            renderer.renderScene(entities, normalMapEntities, lights, waterTilesEmpty, terrains, camera, new Vector4f(0, 1, 0, -waterTile.getHeight() + 1f));
             camera.getPosition().y += distance;
             camera.invertPitch();
 
             fbos.bindRefractionFrameBuffer();
-            renderer.renderScene(allEntities, lights, waterTilesEmpty, terrains, camera, new Vector4f(0, -1, 0, waterTile.getHeight() + 1f));
+            renderer.renderScene(entities, normalMapEntities, lights, waterTilesEmpty, terrains, camera, new Vector4f(0, -1, 0, waterTile.getHeight() + 1f));
 
-            GL11.glDisable(GL30.GL_CLIP_DISTANCE0);
             fbos.unbindCurrentFrameBuffer();
-            renderer.renderScene(allEntities, lights, waterTiles, terrains, camera,  new Vector4f(0, -1, 0, 150000));
+            renderer.renderScene(entities, normalMapEntities, lights, waterTiles, terrains, camera,  new Vector4f(0, -1, 0, 150000));
             guiRenderer.render(guis);
 
             //Update display

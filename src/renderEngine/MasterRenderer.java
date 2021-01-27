@@ -10,6 +10,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector4f;
+import renderEngine.normalMappingRenderer.NormalMappingRenderer;
 import shaders.StaticShader;
 import skybox.SkyboxRenderer;
 import terrains.Terrain;
@@ -32,7 +33,7 @@ public class MasterRenderer {
     private static final float NEAR_PLANE = 0.1f;
     private static final float FAR_PLANE = 1000f;
 
-    private static final Colour SKY_COLOUR = Colour.GREY;
+    public static final Colour SKY_COLOUR = Colour.GREY;
 
     private Matrix4f projectionMatrix;
 
@@ -47,7 +48,10 @@ public class MasterRenderer {
     private WaterShader waterShader = new WaterShader();
     private WaterRenderer waterRenderer;
 
+    private NormalMappingRenderer normalMappingRenderer;
+
     private Map<TexturedModel, List<Entity>> entities = new HashMap<TexturedModel, List<Entity>>();
+    private Map<TexturedModel, List<Entity>> normalMapEntities = new HashMap<TexturedModel, List<Entity>>();
     private List<Terrain> terrains = new ArrayList<Terrain>();
 
     public MasterRenderer(Loader loader, WaterFrameBuffers fbos){
@@ -57,6 +61,7 @@ public class MasterRenderer {
         terrainRenderer = new TerrainRenderer(terrainShader, projectionMatrix);
         skyboxRenderer =  new SkyboxRenderer(loader, projectionMatrix);
         waterRenderer = new WaterRenderer(loader, waterShader, projectionMatrix, fbos);
+        normalMappingRenderer = new NormalMappingRenderer(projectionMatrix);
     }
 
     public static void enableFaceCulling(){
@@ -79,6 +84,8 @@ public class MasterRenderer {
         entityRenderer.render(entities);
         staticShader.stop();
 
+        normalMappingRenderer.render(normalMapEntities, clipPlane, lights, camera);
+
         terrainShader.start();
         terrainShader.loadPlane(clipPlane);
         terrainShader.loadSkyColour(SKY_COLOUR.toVector3f());
@@ -93,13 +100,18 @@ public class MasterRenderer {
 
         terrains.clear();
         entities.clear();
+        normalMapEntities.clear();
     }
 
-    public void renderScene(List<Entity> entities, List<Light> lights, List<WaterTile> waterTiles,Terrains terrains, Camera camera,
+    public void renderScene(List<Entity> entities, List<Entity> normalMapEntities, List<Light> lights, List<WaterTile> waterTiles,Terrains terrains, Camera camera,
                             Vector4f clipPlane){
         terrains.render();
         for(Entity entity : entities){
             processEntity(entity);
+            entity.update();
+        }
+        for (Entity entity : normalMapEntities){
+            processNormalEntity(entity);
             entity.update();
         }
         render(lights, waterTiles, camera, clipPlane);
@@ -118,6 +130,18 @@ public class MasterRenderer {
             List<Entity> newBatch = new ArrayList<Entity>();
             newBatch.add(entity);
             entities.put(entityModel, newBatch);
+        }
+    }
+
+    public void processNormalEntity(Entity entity){
+        TexturedModel entityModel = entity.getModel();
+        List<Entity> batch = normalMapEntities.get(entityModel);
+        if(batch != null){
+            batch.add(entity);
+        }else{
+            List<Entity> newBatch = new ArrayList<Entity>();
+            newBatch.add(entity);
+            normalMapEntities.put(entityModel, newBatch);
         }
     }
 
@@ -151,5 +175,6 @@ public class MasterRenderer {
         waterShader.cleanUp();
         staticShader.cleanUp();
         terrainShader.cleanUp();
+        normalMappingRenderer.cleanUp();
     }
 }
