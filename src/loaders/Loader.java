@@ -32,6 +32,14 @@ public class Loader {
         return new RawModel(vaoID, indices.length);
     }
 
+    public int loadToVao(float[] positions, float[] textureCoords){
+        int vaoID = createVao();
+        storeDataInAttributeList(0, 2, positions);
+        storeDataInAttributeList(1, 2, textureCoords);
+        unbindVao();
+        return vaoID;
+    }
+
     public RawModel loadToVao(float[] positions, float[] textureCoords, float[] normals, float[] tangents, int[] indices){
         int vaoID = createVao();
         bindIndicesBuffer(indices);
@@ -106,7 +114,22 @@ public class Loader {
             texture = TextureLoader.getTexture("PNG", new FileInputStream("res/textures/" + fileName + ".png"));
             GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D);
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_LINEAR);
-            GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL14.GL_TEXTURE_LOD_BIAS, -0.5f);
+            GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL14.GL_TEXTURE_LOD_BIAS, -0.4f);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        int textureID = texture.getTextureID();
+        textures.add(textureID);
+        return textureID;
+    }
+
+    public int loadFontTextureAtlas(String fileName){
+        Texture texture = null;
+        try {
+            texture = TextureLoader.getTexture("PNG", new FileInputStream("res/textures/" + fileName + ".png"));
+            GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D);
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_LINEAR);
+            GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL14.GL_TEXTURE_LOD_BIAS, 0);
         } catch (IOException e) {
             e.printStackTrace();
         }

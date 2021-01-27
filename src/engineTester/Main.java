@@ -6,6 +6,9 @@ import entities.Light;
 import entities.Player;
 import entities.structures.Lamp;
 import entities.structures.TreeGenerator;
+import fontMeshCreator.FontType;
+import fontMeshCreator.GUIText;
+import fontRendering.TextMaster;
 import guis.GuiRenderer;
 import guis.GuiTexture;
 import inputs.MousePicker;
@@ -26,6 +29,7 @@ import toolbox.Colour;
 import water.WaterFrameBuffers;
 import water.WaterTile;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -104,6 +108,11 @@ public class Main {
 
         GuiRenderer guiRenderer = new GuiRenderer(loader);
 
+        TextMaster.init(loader);
+
+        FontType font = new FontType(loader.loadFontTextureAtlas("fonts/harrington"), new File("res/textures/fonts/harrington.fnt"));
+        GUIText text = new GUIText("My first text!%-", 1, font, new Vector2f(.5f, .5f), .5f, false);
+
         List<WaterTile> waterTiles = new ArrayList<WaterTile>();
         List<WaterTile> waterTilesEmpty = new ArrayList<WaterTile>();
         WaterTile waterTile = new WaterTile(-210, -485, -8f);
@@ -137,10 +146,13 @@ public class Main {
             renderer.renderScene(entities, normalMapEntities, lights, waterTiles, terrains, camera,  new Vector4f(0, -1, 0, 150000));
             guiRenderer.render(guis);
 
+            TextMaster.render();
+
             //Update display
             DisplayManager.updateDisplay();
         }
 
+        TextMaster.cleanUp();
         fbos.cleanUp();
         guiRenderer.cleanUp();
         renderer.cleanUp();

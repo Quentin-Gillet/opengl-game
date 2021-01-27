@@ -88,8 +88,8 @@ public class NormalMappedObjLoader {
 	//NEW 
 	private static void calculateTangents(VertexNM v0, VertexNM v1, VertexNM v2,
 			List<Vector2f> textures) {
-		Vector3f delatPos1 = Vector3f.sub(v1.getPosition(), v0.getPosition(), null);
-		Vector3f delatPos2 = Vector3f.sub(v2.getPosition(), v0.getPosition(), null);
+		Vector3f deltaPos1 = Vector3f.sub(v1.getPosition(), v0.getPosition(), null);
+		Vector3f deltaPos2 = Vector3f.sub(v2.getPosition(), v0.getPosition(), null);
 		Vector2f uv0 = textures.get(v0.getTextureIndex());
 		Vector2f uv1 = textures.get(v1.getTextureIndex());
 		Vector2f uv2 = textures.get(v2.getTextureIndex());
@@ -97,9 +97,9 @@ public class NormalMappedObjLoader {
 		Vector2f deltaUv2 = Vector2f.sub(uv2, uv0, null);
 
 		float r = 1.0f / (deltaUv1.x * deltaUv2.y - deltaUv1.y * deltaUv2.x);
-		delatPos1.scale(deltaUv2.y);
-		delatPos2.scale(deltaUv1.y);
-		Vector3f tangent = Vector3f.sub(delatPos1, delatPos2, null);
+		deltaPos1.scale(deltaUv2.y);
+		deltaPos2.scale(deltaUv1.y);
+		Vector3f tangent = Vector3f.sub(deltaPos1, deltaPos2, null);
 		tangent.scale(r);
 		v0.addTangent(tangent);
 		v1.addTangent(tangent);
