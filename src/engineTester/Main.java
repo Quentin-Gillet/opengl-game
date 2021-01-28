@@ -22,6 +22,9 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 import org.lwjgl.util.vector.Vector4f;
+import particle.ParticleMaster;
+import particle.ParticleSystem;
+import particle.ParticleTexture;
 import renderEngine.*;
 import terrains.Terrains;
 import textures.ModelTexture;
@@ -111,7 +114,7 @@ public class Main {
         TextMaster.init(loader);
 
         FontType font = new FontType(loader.loadFontTextureAtlas("fonts/harrington"), new File("res/textures/fonts/harrington.fnt"));
-        GUIText text = new GUIText("My first text!%-", 1, font, new Vector2f(.5f, .5f), .5f, false);
+        //GUIText text = new GUIText("My first text!%-", 1, font, new Vector2f(.5f, .5f), .5f, false);
 
         List<WaterTile> waterTiles = new ArrayList<WaterTile>();
         List<WaterTile> waterTilesEmpty = new ArrayList<WaterTile>();
@@ -120,6 +123,14 @@ public class Main {
         waterTiles.add(waterTile);
         waterTiles.add(waterTile2);
 
+        ParticleMaster.init(loader, renderer.getProjectionMatrix());
+        ParticleSystem particleSystem = new ParticleSystem(new ParticleTexture(loader.loadTexture("particles/particleStar"), 1, true), 20000, 80, 0, 1f, 1);
+        particleSystem.setDirection(new Vector3f(0, 1, 0), 0.3f);
+        particleSystem.randomizeRotation();
+        particleSystem.setSpeedError(0.6f);
+        particleSystem.setLifeError(0.2f);
+        particleSystem.setScaleError(0.4f);
+
         while(!Display.isCloseRequested()){
             //Game logic
             player.move(terrains.getCurrentTerrain(player.getPosition()), waterTiles);
@@ -127,10 +138,15 @@ public class Main {
             //picker.update();
             //camera.cameraOwnMovement();
 
+            ParticleMaster.update(camera);
+
+            particleSystem.generateParticles(new Vector3f(-210, 10, -485));
+
             Vector3f terrainPoint = picker.getCurrentTerrainPoint();
             if(terrainPoint != null && lamp != null) lamp.setPosition(terrainPoint);
 
             //Render
+            GL11.glEnable(GL30.GL_CLIP_DISTANCE0);
             fbos.bindReflectionFrameBuffer();
             float distance = 2 * (camera.getPosition().y - waterTile.getHeight());
             camera.getPosition().y -= distance;
@@ -144,14 +160,16 @@ public class Main {
 
             fbos.unbindCurrentFrameBuffer();
             renderer.renderScene(entities, normalMapEntities, lights, waterTiles, terrains, camera,  new Vector4f(0, -1, 0, 150000));
-            guiRenderer.render(guis);
+            ParticleMaster.renderParticles(camera);
 
+            guiRenderer.render(guis);
             TextMaster.render();
 
             //Update display
             DisplayManager.updateDisplay();
         }
 
+        ParticleMaster.cleanUp();
         TextMaster.cleanUp();
         fbos.cleanUp();
         guiRenderer.cleanUp();
