@@ -2,6 +2,7 @@ package water;
 
 import entities.Light;
 import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector3f;
 import shaders.ShaderProgram;
 import toolbox.Maths;
 import entities.Camera;
@@ -23,6 +24,9 @@ public class WaterShader extends ShaderProgram {
 	private int location_depthMap;
 	private int location_lightColour; //TODO support for multiple lights and attenuation
 	private int location_lightPosition;
+	private int location_skyColour;
+	private int location_useFog;
+
 
 	public WaterShader() {
 		super(VERTEX_FILE, FRAGMENT_FILE);
@@ -47,6 +51,9 @@ public class WaterShader extends ShaderProgram {
 		location_depthMap = getUniformLocation("depthMap");
 		location_lightColour = getUniformLocation("lightColour");
 		location_lightPosition = getUniformLocation("lightPosition");
+		location_useFog = super.getUniformLocation("useFog");
+		location_skyColour = super.getUniformLocation("skyColour");
+
 	}
 
 	public void loadProjectionMatrix(Matrix4f projection) {
@@ -70,6 +77,14 @@ public class WaterShader extends ShaderProgram {
 	public void loadLight(Light light){
 		super.loadVector3f(location_lightColour, light.getColour());
 		super.loadVector3f(location_lightPosition, light.getPosition());
+	}
+
+	public void loadFog(boolean useFog){
+		super.loadBoolean(location_useFog, useFog);
+	}
+
+	public void loadSkyColour(Vector3f skyColour){
+		super.loadVector3f(location_skyColour, skyColour);
 	}
 
 	public void changeMoveFactor(float factor){

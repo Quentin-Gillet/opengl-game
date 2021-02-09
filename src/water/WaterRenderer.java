@@ -14,6 +14,7 @@ import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
 
 import renderEngine.DisplayManager;
+import renderEngine.MasterRenderer;
 import toolbox.Maths;
 import entities.Camera;
 
@@ -51,6 +52,7 @@ public class WaterRenderer {
 					new Vector3f(tile.getX(), tile.getHeight(), tile.getZ()), 0, 0, 0,
 					WaterTile.TILE_SIZE);
 			shader.loadModelMatrix(modelMatrix);
+			shader.loadFog(quad.isUseFog());
 			GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, quad.getVertexCount());
 		}
 		unbind();
@@ -58,6 +60,7 @@ public class WaterRenderer {
 	
 	private void prepareRender(Camera camera, Light sun){
 		shader.start();
+		shader.loadSkyColour(MasterRenderer.SKY_COLOUR.toVector3f());
 		shader.loadViewMatrix(camera);
 		moveFactor += WAVE_SPEED * DisplayManager.getDeltaTime();
 		moveFactor %= 1;

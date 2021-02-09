@@ -69,7 +69,7 @@ public class Main {
         Terrains terrains = new Terrains(loader, renderer);
 
         TexturedModel playerModel = new TexturedModel(OBJFileLoader.loadObjModel("person", loader), new ModelTexture(loader.loadTexture("models/playerTexture")));
-        Player player = new Player(playerModel, new Vector3f(-200, 0, -480), 0, 180, 0, 0.5f);
+        Player player = new Player(playerModel, new Vector3f(400, 0, 400), 0, 180, 0, 0.5f);
         Camera camera = new Camera(player);
 
         TreeGenerator treeGenerator = new TreeGenerator(loader);
@@ -82,15 +82,24 @@ public class Main {
         barrel.getTexture().setNormalMapID(loader.loadTexture("models/normals/barrelNormal"));
         normalMapEntities.add(new Entity(barrel, new Vector3f(75, 10, -75), 0, 0, 0, 1f));
 
+        List<WaterTile> waterTiles = new ArrayList<>();
+        List<WaterTile> waterTilesEmpty = new ArrayList<>();
+        WaterTile waterTile = new WaterTile(400, 400, -2f);
+        WaterTile waterTile2 = new WaterTile(400, 1200, -2f);
+        waterTiles.add(waterTile);
+        waterTiles.add(waterTile2);
+
         Lamp lamp = null;
 
         for (int i = 0; i < 1000; i++){
-            float x1 = r.nextFloat() * -800 + 800;
-            float x2 = r.nextFloat() * -800;
-            float x = r.nextBoolean() ? x1 : x2;
-            float z = r.nextFloat() * -800;
+            float x = r.nextFloat() * 800;
+            float z = r.nextFloat() * 1600;
             int random = r.nextInt(4);
             float y = terrains.getCurrentTerrain(new Vector3f(x, 0, z)).getHeightOfTerrain(x, z);
+            if(WaterTile.isInWater(new Vector3f(x, y, z), waterTiles)){
+                i--;
+                continue;
+            }
             if(random == 2){
                 entities.add(new Entity(fern, r.nextInt(4), new Vector3f(x, y, z), 0, 0, 0, 0.75f));
             }else if(random == 0){
@@ -116,16 +125,9 @@ public class Main {
         FontType font = new FontType(loader.loadFontTextureAtlas("fonts/harrington"), new File("res/textures/fonts/harrington.fnt"));
         //GUIText text = new GUIText("My first text!%-", 1, font, new Vector2f(.5f, .5f), .5f, false);
 
-        List<WaterTile> waterTiles = new ArrayList<WaterTile>();
-        List<WaterTile> waterTilesEmpty = new ArrayList<WaterTile>();
-        WaterTile waterTile = new WaterTile(-210, -485, -8f);
-        WaterTile waterTile2 = new WaterTile(-360, -513, -13f);
-        waterTiles.add(waterTile);
-        waterTiles.add(waterTile2);
-
         ParticleMaster.init(loader, renderer.getProjectionMatrix());
-        ParticleSystem particleSystem = new ParticleSystem(new ParticleTexture(loader.loadTexture("particles/particleStar"), 1, true), 20000, 80, 0, 1f, 1);
-        particleSystem.setDirection(new Vector3f(0, 1, 0), 0.3f);
+        ParticleSystem particleSystem = new ParticleSystem(new ParticleTexture(loader.loadTexture("particles/particleStar"), 1, true), 100, 80, 1, 1f, 1);
+        particleSystem.setDirection(new Vector3f(0, 1, 0), 0.4f);
         particleSystem.randomizeRotation();
         particleSystem.setSpeedError(0.6f);
         particleSystem.setLifeError(0.2f);
@@ -133,14 +135,14 @@ public class Main {
 
         while(!Display.isCloseRequested()){
             //Game logic
-            player.move(terrains.getCurrentTerrain(player.getPosition()), waterTiles);
+            //player.move(terrains.getCurrentTerrain(player.getPosition()), waterTiles);
+            player.playerCameraMove();
             camera.move();
             //picker.update();
-            //camera.cameraOwnMovement();
-
             ParticleMaster.update(camera);
-
             particleSystem.generateParticles(new Vector3f(-210, 10, -485));
+
+            System.out.println(player.getPosition());
 
             Vector3f terrainPoint = picker.getCurrentTerrainPoint();
             if(terrainPoint != null && lamp != null) lamp.setPosition(terrainPoint);

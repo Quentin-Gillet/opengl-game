@@ -8,6 +8,7 @@ import textures.TerrainTexturePack;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class Terrains {
 
@@ -15,10 +16,13 @@ public class Terrains {
     private MasterRenderer renderer;
 
     List<Terrain> terrains = new ArrayList<Terrain>();
+    private Random random = new Random();
+    private int seed;
 
     public Terrains(Loader loader, MasterRenderer renderer) {
         this.loader = loader;
         this.renderer = renderer;
+        this.seed = random.nextInt(1000000000);
 
         addTerrains();
     }
@@ -49,8 +53,8 @@ public class Terrains {
 
         TerrainTexturePack terrainTexturePack = new TerrainTexturePack(backgroundTexture, rTexture, gTexture, bTexture);
 
-        Terrain terrain1 = new Terrain(0, -1, loader, terrainTexturePack, blendMap2, "heightMap");
-        Terrain terrain2 = new Terrain(-1, -1, loader, terrainTexturePack, blendMap1, "heightMap");
+        Terrain terrain1 = new Terrain(0, 0, loader, terrainTexturePack, blendMap2, seed);
+        Terrain terrain2 = new Terrain(0, 1, loader, terrainTexturePack, blendMap1, seed);
         terrains.add(terrain1);
         terrains.add(terrain2);
     }

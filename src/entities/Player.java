@@ -17,6 +17,8 @@ import java.util.List;
 public class Player extends Entity{
 
     private static final float RUN_SPEED = 60;
+    private static final float CAMERA_SPEED = 300;
+    private static final float CAMERA_TURN_SPEED = 150;
     private static final float TURN_SPEED = 160;
     private static final float JUMP_POWER = 30;
     public static final float GRAVITY = -50;
@@ -30,8 +32,19 @@ public class Player extends Entity{
     private boolean isInAir = false;
     private boolean isInWater = false;
 
+
     public Player(TexturedModel model, Vector3f position, float rotX, float rotY, float rotZ, float scale) {
         super(model, position, rotX, rotY, rotZ, scale);
+    }
+
+    public void playerCameraMove(){
+        checkCameraMoveInputs();
+        super.increaseRotation(new Vector3f(0f, currentTurnSpeed * DisplayManager.getDeltaTime(), 0f));
+        float distance = currentSpeed * DisplayManager.getDeltaTime();
+        float dx = (float) (distance * Math.sin(Math.toRadians(super.getRotY())));
+        float dz = (float) (distance * Math.cos(Math.toRadians(super.getRotY())));
+        super.increasePosition(new Vector3f(dx, 0, dz));
+        super.increasePosition(new Vector3f(0, upwardsSpeed * DisplayManager.getDeltaTime(), 0));
     }
 
     public void move(Terrain terrain, List<WaterTile> waterTiles){
@@ -71,6 +84,30 @@ public class Player extends Entity{
 
     public boolean isInWater() {
         return isInWater;
+    }
+
+
+    private void checkCameraMoveInputs() {
+        if (Keyboard.isKeyDown(Keyboard.KEY_Z)) {
+            this.currentSpeed = CAMERA_SPEED;
+        } else if (Keyboard.isKeyDown(Keyboard.KEY_S)) {
+            this.currentSpeed = -CAMERA_SPEED;
+        } else {
+            this.currentSpeed = 0;
+        }
+
+        if (Keyboard.isKeyDown(Keyboard.KEY_Q)) {
+            this.currentTurnSpeed = CAMERA_TURN_SPEED;
+        } else if (Keyboard.isKeyDown(Keyboard.KEY_D)) {
+            this.currentTurnSpeed = -CAMERA_TURN_SPEED;
+        } else {
+            this.currentTurnSpeed = 0;
+        }
+
+        if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)) {
+            this.upwardsSpeed = +CAMERA_SPEED;
+        } else if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) this.upwardsSpeed = -CAMERA_SPEED;
+        else this.upwardsSpeed = 0;
     }
 
     private void jump(){
